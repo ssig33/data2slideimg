@@ -1,9 +1,17 @@
 from PIL import Image, ImageDraw
 from io import BytesIO
 import random
+import requests
 from src.models import SlideRequest
 from src.layout import LayoutEngine
 from src.graph_renderer import GraphRenderer
+
+
+def download_image(url: str) -> Image.Image:
+    """Download image from URL"""
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    return img
 
 
 def generate_gradient_background(width: int, height: int) -> Image.Image:
@@ -40,16 +48,21 @@ def generate_slide_image(request: SlideRequest) -> bytes:
     if request.title:
         layout.draw_title(img, request.title)
     
-    # New layout: graph left, text and table right
+    # New layout: image/graph left, text and table right
     right_column_start = None
     
-    # Draw graph in left column if exists
-    if request.graph:
+    # Priority: image > graph
+    if request.image:
+        # Download and draw image in left column
+        source_img = download_image(request.image.url)
+        right_column_start = layout.draw_image_left(img, source_img)
+    elif request.graph:
+        # Draw graph in left column if no image
         graph_renderer = GraphRenderer()
         graph_img = graph_renderer.render_graph(request.graph)
         right_column_start = layout.draw_graph_left(img, graph_img)
     else:
-        # If no graph, use full width for text
+        # If no image or graph, use full width for text
         right_column_start = layout.margin
     
     # Draw text blocks in right column

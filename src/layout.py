@@ -129,6 +129,45 @@ class LayoutEngine:
         # Return right column start position
         return self.margin + left_width + self.margin
     
+    def draw_image_left(self, img: Image.Image, source_img: Image.Image):
+        """Draw image in left column"""
+        # Left column dimensions
+        left_width = (self.width - 3 * self.margin) // 2
+        available_height = self.height - self.content_start_y - self.margin
+        
+        # Calculate image size to fit left column
+        img_width = min(source_img.width, left_width)
+        img_height = min(source_img.height, available_height)
+        
+        # Maintain aspect ratio
+        aspect_ratio = source_img.width / source_img.height
+        if img_width / img_height > aspect_ratio:
+            img_width = int(img_height * aspect_ratio)
+        else:
+            img_height = int(img_width / aspect_ratio)
+        
+        # Resize image
+        source_img = source_img.resize((img_width, img_height), Image.Resampling.LANCZOS)
+        
+        # Position in left column
+        x = self.margin
+        y = self.content_start_y
+        
+        # Draw gray background for image
+        draw = ImageDraw.Draw(img)
+        padding = 20
+        bg_x1 = x - padding
+        bg_y1 = y - padding
+        bg_x2 = x + img_width + padding
+        bg_y2 = y + img_height + padding
+        draw.rectangle([bg_x1, bg_y1, bg_x2, bg_y2], fill=(240, 240, 240))
+        
+        # Paste image
+        img.paste(source_img, (x, y))
+        
+        # Return right column start position
+        return self.margin + left_width + self.margin
+    
     def draw_table_right(self, img: Image.Image, table: TableData, x_start: int, y_start: int):
         """Draw table in right column"""
         draw = ImageDraw.Draw(img)

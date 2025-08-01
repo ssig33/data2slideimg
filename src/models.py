@@ -17,8 +17,13 @@ class TableData(BaseModel):
     rows: List[List[str]]
 
 
+class ImageData(BaseModel):
+    url: str
+
+
 class SlideRequest(BaseModel):
     title: Optional[str] = None
     textBlocks: Optional[List[TextBlock]] = None
     graph: Optional[GraphData] = None  # Single graph only
     table: Optional[TableData] = None
+    image: Optional[ImageData] = None

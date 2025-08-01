@@ -1,0 +1,14 @@
+{
+  "title": "Image Test Slide",
+  "textBlocks": [
+    {
+      "text": "This slide demonstrates the new image feature."
+    },
+    {
+      "text": "The image is displayed on the left side, replacing the graph."
+    }
+  ],
+  "image": {
+    "url": "https://minio.ssig33.com/hollo/media/01986474-bc1d-7c22-90c7-db1de9033473/original.jpeg"
+  }
+}
