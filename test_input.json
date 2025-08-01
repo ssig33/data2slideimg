@@ -1,0 +1,18 @@
+{
+  "title": "Sample Slide",
+  "textBlocks": [
+    {
+      "text": "This is a sample text block for testing the slide generator."
+    },
+    {
+      "text": "Another paragraph with some more content to demonstrate text layout."
+    }
+  ],
+  "graphs": [
+    {
+      "type": "bar",
+      "data": [10, 20, 15, 25, 30],
+      "labels": ["A", "B", "C", "D", "E"]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+[project]
+name = "data2slideimg"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.2.1",
+    "fastapi>=0.116.1",
+    "matplotlib>=3.10.5",
+    "pillow>=11.3.0",
+    "uvicorn>=0.35.0",
+]
