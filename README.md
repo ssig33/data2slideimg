@@ -2,6 +2,8 @@
 
 Convert JSON data to slide images.
 
+![sample](docs/images/sample.png)
+
 ## Usage
 
 CLI:
