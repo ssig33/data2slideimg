@@ -20,5 +20,5 @@ class TableData(BaseModel):
 class SlideRequest(BaseModel):
     title: Optional[str] = None
     textBlocks: Optional[List[TextBlock]] = None
-    graphs: Optional[List[GraphData]] = None
+    graph: Optional[GraphData] = None  # Single graph only
     table: Optional[TableData] = None

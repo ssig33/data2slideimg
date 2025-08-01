@@ -10,6 +10,7 @@ class LayoutEngine:
         self.height = height
         self.margin = 80
         self.current_y = self.margin
+        self.content_start_y = self.margin  # Start of content area after title
         
         # Try to load Japanese font
         self.font_paths = [
@@ -52,81 +53,98 @@ class LayoutEngine:
         draw.text((x, y), title, fill=(255, 255, 255), font=self.title_font)
         
         self.current_y = y + text_height + self.margin
+        self.content_start_y = self.current_y
     
-    def draw_text_block(self, img: Image.Image, text: str):
-        """Draw text block"""
+    def draw_text_blocks_right(self, img: Image.Image, text_blocks: list, x_start: int):
+        """Draw text blocks in right column"""
         draw = ImageDraw.Draw(img)
+        current_y = self.content_start_y
+        right_width = self.width - x_start - self.margin
         
-        # Word wrap
-        words = text.split()
-        lines = []
-        current_line = []
-        
-        for word in words:
-            test_line = ' '.join(current_line + [word])
-            bbox = draw.textbbox((0, 0), test_line, font=self.text_font)
-            if bbox[2] - bbox[0] > self.width - 2 * self.margin:
-                if current_line:
-                    lines.append(' '.join(current_line))
-                    current_line = [word]
+        for text_block in text_blocks:
+            # Word wrap for right column
+            words = text_block.split()
+            lines = []
+            current_line = []
+            
+            for word in words:
+                test_line = ' '.join(current_line + [word])
+                bbox = draw.textbbox((0, 0), test_line, font=self.text_font)
+                if bbox[2] - bbox[0] > right_width:
+                    if current_line:
+                        lines.append(' '.join(current_line))
+                        current_line = [word]
+                    else:
+                        lines.append(word)
                 else:
-                    lines.append(word)
-            else:
-                current_line.append(word)
+                    current_line.append(word)
+            
+            if current_line:
+                lines.append(' '.join(current_line))
+            
+            # Draw lines
+            for line in lines:
+                draw.text((x_start, current_y), line, fill=(255, 255, 255), font=self.text_font)
+                current_y += 50
+            
+            current_y += 30
         
-        if current_line:
-            lines.append(' '.join(current_line))
-        
-        # Draw lines
-        for line in lines:
-            draw.text((self.margin, self.current_y), line, fill=(255, 255, 255), font=self.text_font)
-            self.current_y += 50
-        
-        self.current_y += 30
+        return current_y
     
-    def draw_graph(self, img: Image.Image, graph_img: Image.Image):
-        """Draw graph image"""
-        # Calculate position
-        graph_width = min(graph_img.width, self.width - 2 * self.margin)
-        graph_height = min(graph_img.height, self.height - self.current_y - self.margin)
+    def draw_graph_left(self, img: Image.Image, graph_img: Image.Image):
+        """Draw graph image in left column"""
+        # Left column dimensions
+        left_width = (self.width - 3 * self.margin) // 2
+        available_height = self.height - self.content_start_y - self.margin
         
-        # Resize if needed
-        if graph_img.width != graph_width or graph_img.height != graph_height:
-            graph_img = graph_img.resize((graph_width, graph_height), Image.Resampling.LANCZOS)
+        # Calculate graph size to fit left column
+        graph_width = min(graph_img.width, left_width)
+        graph_height = min(graph_img.height, available_height)
         
-        # Center horizontally
-        x = (self.width - graph_width) // 2
+        # Maintain aspect ratio
+        aspect_ratio = graph_img.width / graph_img.height
+        if graph_width / graph_height > aspect_ratio:
+            graph_width = int(graph_height * aspect_ratio)
+        else:
+            graph_height = int(graph_width / aspect_ratio)
+        
+        # Resize graph
+        graph_img = graph_img.resize((graph_width, graph_height), Image.Resampling.LANCZOS)
+        
+        # Position in left column
+        x = self.margin
+        y = self.content_start_y
         
         # Draw gray background for graph
         draw = ImageDraw.Draw(img)
         padding = 20
         bg_x1 = x - padding
-        bg_y1 = self.current_y - padding
+        bg_y1 = y - padding
         bg_x2 = x + graph_width + padding
-        bg_y2 = self.current_y + graph_height + padding
+        bg_y2 = y + graph_height + padding
         draw.rectangle([bg_x1, bg_y1, bg_x2, bg_y2], fill=(240, 240, 240))
         
-        # Paste with transparency
-        img.paste(graph_img, (x, self.current_y), graph_img if graph_img.mode == 'RGBA' else None)
+        # Paste graph
+        img.paste(graph_img, (x, y), graph_img if graph_img.mode == 'RGBA' else None)
         
-        self.current_y += graph_height + self.margin
+        # Return right column start position
+        return self.margin + left_width + self.margin
     
-    def draw_table(self, img: Image.Image, table: TableData):
-        """Draw table"""
+    def draw_table_right(self, img: Image.Image, table: TableData, x_start: int, y_start: int):
+        """Draw table in right column"""
         draw = ImageDraw.Draw(img)
         
-        # Calculate cell dimensions
+        # Calculate cell dimensions for right column
         num_cols = len(table.headers)
-        num_rows = len(table.rows) + 1  # +1 for header
+        right_width = self.width - x_start - self.margin
+        cell_width = right_width // num_cols
+        cell_height = 50
         
-        table_width = self.width - 2 * self.margin
-        cell_width = table_width // num_cols
-        cell_height = 60
+        y = y_start + 30  # Add some space before table
         
         # Draw header
-        y = self.current_y
         for i, header in enumerate(table.headers):
-            x = self.margin + i * cell_width
+            x = x_start + i * cell_width
             # Draw cell background
             draw.rectangle([x, y, x + cell_width, y + cell_height], 
                          fill=(255, 255, 255, 30), outline=(255, 255, 255, 128))
@@ -134,14 +152,14 @@ class LayoutEngine:
             bbox = draw.textbbox((0, 0), header, font=self.table_font)
             text_width = bbox[2] - bbox[0]
             text_x = x + (cell_width - text_width) // 2
-            draw.text((text_x, y + 15), header, fill=(255, 255, 255), font=self.table_font)
+            draw.text((text_x, y + 12), header, fill=(255, 255, 255), font=self.table_font)
         
         y += cell_height
         
         # Draw rows
         for row in table.rows:
             for i, cell in enumerate(row):
-                x = self.margin + i * cell_width
+                x = x_start + i * cell_width
                 # Draw cell
                 draw.rectangle([x, y, x + cell_width, y + cell_height], 
                              outline=(255, 255, 255, 128))
@@ -149,7 +167,5 @@ class LayoutEngine:
                 bbox = draw.textbbox((0, 0), cell, font=self.table_font)
                 text_width = bbox[2] - bbox[0]
                 text_x = x + (cell_width - text_width) // 2
-                draw.text((text_x, y + 15), cell, fill=(255, 255, 255), font=self.table_font)
+                draw.text((text_x, y + 12), cell, fill=(255, 255, 255), font=self.table_font)
             y += cell_height
-        
-        self.current_y = y + self.margin

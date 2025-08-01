@@ -1,0 +1,16 @@
+{
+  "title": "Temperature Trends",
+  "textBlocks": [
+    {
+      "text": "Monthly temperature variations throughout the year showing seasonal patterns."
+    },
+    {
+      "text": "Peak temperatures occur in July and August, while the lowest temperatures are recorded in January and February."
+    }
+  ],
+  "graph": {
+    "type": "line",
+    "data": [5, 8, 12, 18, 22, 28, 32, 30, 25, 19, 12, 6],
+    "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  }
+}

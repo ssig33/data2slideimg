@@ -40,19 +40,27 @@ def generate_slide_image(request: SlideRequest) -> bytes:
     if request.title:
         layout.draw_title(img, request.title)
     
-    # Draw text blocks
-    if request.textBlocks:
-        for text_block in request.textBlocks:
-            layout.draw_text_block(img, text_block.text)
+    # New layout: graph left, text and table right
+    right_column_start = None
     
-    # Draw graphs or table
-    if request.graphs:
+    # Draw graph in left column if exists
+    if request.graph:
         graph_renderer = GraphRenderer()
-        for graph in request.graphs:
-            graph_img = graph_renderer.render_graph(graph)
-            layout.draw_graph(img, graph_img)
-    elif request.table:
-        layout.draw_table(img, request.table)
+        graph_img = graph_renderer.render_graph(request.graph)
+        right_column_start = layout.draw_graph_left(img, graph_img)
+    else:
+        # If no graph, use full width for text
+        right_column_start = layout.margin
+    
+    # Draw text blocks in right column
+    text_end_y = layout.content_start_y
+    if request.textBlocks:
+        text_blocks_text = [block.text for block in request.textBlocks]
+        text_end_y = layout.draw_text_blocks_right(img, text_blocks_text, right_column_start)
+    
+    # Draw table below text in right column
+    if request.table:
+        layout.draw_table_right(img, request.table, right_column_start, text_end_y)
     
     # Convert to bytes
     output = BytesIO()
