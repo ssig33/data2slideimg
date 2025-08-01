@@ -62,25 +62,24 @@ class LayoutEngine:
         right_width = self.width - x_start - self.margin
         
         for text_block in text_blocks:
-            # Word wrap for right column
-            words = text_block.split()
+            # Character-based wrap for Japanese text
             lines = []
-            current_line = []
+            current_line = ""
             
-            for word in words:
-                test_line = ' '.join(current_line + [word])
+            for char in text_block:
+                test_line = current_line + char
                 bbox = draw.textbbox((0, 0), test_line, font=self.text_font)
                 if bbox[2] - bbox[0] > right_width:
                     if current_line:
-                        lines.append(' '.join(current_line))
-                        current_line = [word]
+                        lines.append(current_line)
+                        current_line = char
                     else:
-                        lines.append(word)
+                        lines.append(char)
                 else:
-                    current_line.append(word)
+                    current_line = test_line
             
             if current_line:
-                lines.append(' '.join(current_line))
+                lines.append(current_line)
             
             # Draw lines
             for line in lines:

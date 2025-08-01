@@ -20,6 +20,10 @@ This directory contains sample JSON files and their generated slide images demon
 - **Input**: [table_sample.json](table_sample.json)
 - **Output**: ![Table Sample](table_sample.png)
 
+## Japanese Sample
+- **Input**: [japanese_sample.json](japanese_sample.json)
+- **Output**: ![Japanese Sample](japanese_sample.png)
+
 ## Usage
 
 To generate these samples yourself:
