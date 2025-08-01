@@ -97,6 +97,15 @@ class LayoutEngine:
         # Center horizontally
         x = (self.width - graph_width) // 2
         
+        # Draw gray background for graph
+        draw = ImageDraw.Draw(img)
+        padding = 20
+        bg_x1 = x - padding
+        bg_y1 = self.current_y - padding
+        bg_x2 = x + graph_width + padding
+        bg_y2 = self.current_y + graph_height + padding
+        draw.rectangle([bg_x1, bg_y1, bg_x2, bg_y2], fill=(240, 240, 240))
+        
         # Paste with transparency
         img.paste(graph_img, (x, self.current_y), graph_img if graph_img.mode == 'RGBA' else None)
         

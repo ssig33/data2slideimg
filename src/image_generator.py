@@ -11,9 +11,9 @@ def generate_gradient_background(width: int, height: int) -> Image.Image:
     img = Image.new('RGB', (width, height))
     draw = ImageDraw.Draw(img)
     
-    # Random colors
-    color1 = (random.randint(100, 255), random.randint(100, 255), random.randint(100, 255))
-    color2 = (random.randint(50, 200), random.randint(50, 200), random.randint(50, 200))
+    # Random colors - darker for better contrast with white text
+    color1 = (random.randint(40, 120), random.randint(40, 120), random.randint(40, 120))
+    color2 = (random.randint(20, 80), random.randint(20, 80), random.randint(20, 80))
     
     # Create gradient
     for y in range(height):
