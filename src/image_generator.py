@@ -103,16 +103,33 @@ def generate_vertical_slide_image(request: SlideRequest) -> bytes:
     # Create base image with vibrant gradient
     img = generate_gradient_background(width, height, vibrant=True)
     
-    # Create blurred background if image is provided
+    # Use image as clean background if provided
+    has_image_background = False
     if request.image:
         try:
             bg_img = download_image(request.image.url)
-            # Scale to cover and crop
-            bg_img = bg_img.resize((width, height), Image.Resampling.LANCZOS)
-            # Apply blur
-            bg_img = bg_img.filter(ImageFilter.GaussianBlur(radius=20))
-            # Blend with gradient (50% opacity)
-            img = Image.blend(img, bg_img, 0.5)
+            # Maintain aspect ratio - scale to fit width and center vertically
+            original_width, original_height = bg_img.size
+            aspect_ratio = original_width / original_height
+            
+            # Scale to fit width
+            new_width = width
+            new_height = int(width / aspect_ratio)
+            
+            # If scaled image is too short, scale to fit height instead
+            if new_height < height:
+                new_height = height
+                new_width = int(height * aspect_ratio)
+            
+            bg_img = bg_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            
+            # Create base image and paste centered
+            img = generate_gradient_background(width, height, vibrant=True)
+            paste_x = (width - new_width) // 2
+            paste_y = (height - new_height) // 2
+            img.paste(bg_img, (paste_x, paste_y))
+            
+            has_image_background = True
         except:
             pass  # Use gradient only if image fails
     
@@ -121,22 +138,22 @@ def generate_vertical_slide_image(request: SlideRequest) -> bytes:
     
     # Draw title with glassmorphism effect
     if request.title:
-        layout.draw_title_overlay(img, request.title)
+        layout.draw_title_overlay(img, request.title, has_image_background)
     
     # Draw graph/data card if exists
     if request.graph:
         graph_renderer = GraphRenderer()
         graph_img = graph_renderer.render_graph(request.graph, vertical_format=True)
-        layout.draw_graph_card(img, graph_img)
+        layout.draw_graph_card(img, graph_img, has_image_background)
     
     # Draw text blocks as cards
     if request.textBlocks:
         text_blocks_text = [block.text for block in request.textBlocks]
-        layout.draw_text_cards(img, text_blocks_text)
+        layout.draw_text_cards(img, text_blocks_text, has_image_background)
     
     # Draw table as card
     if request.table:
-        layout.draw_table_card(img, request.table)
+        layout.draw_table_card(img, request.table, has_image_background)
     
     # Convert to bytes
     output = BytesIO()

@@ -244,49 +244,107 @@ class VerticalLayoutEngine:
                     continue
         return ImageFont.load_default()
     
-    def draw_glassmorphism_rect(self, draw: ImageDraw.Draw, x1: int, y1: int, x2: int, y2: int):
+    def draw_glassmorphism_rect(self, draw: ImageDraw.Draw, x1: int, y1: int, x2: int, y2: int, has_image_bg: bool = False):
         """Draw glassmorphism effect rectangle"""
-        # Semi-transparent white background - more opaque
-        draw.rectangle([x1, y1, x2, y2], fill=(255, 255, 255, 80))
-        # Border - stronger
-        draw.rectangle([x1, y1, x2, y2], outline=(255, 255, 255, 200), width=3)
+        if has_image_bg:
+            # More opaque background for image backgrounds
+            draw.rectangle([x1, y1, x2, y2], fill=(0, 0, 0, 120))
+            # Stronger border
+            draw.rectangle([x1, y1, x2, y2], outline=(255, 255, 255, 255), width=3)
+        else:
+            # Semi-transparent white background - more opaque
+            draw.rectangle([x1, y1, x2, y2], fill=(255, 255, 255, 80))
+            # Border - stronger
+            draw.rectangle([x1, y1, x2, y2], outline=(255, 255, 255, 200), width=3)
     
-    def draw_title_overlay(self, img: Image.Image, title: str):
+    def draw_title_overlay(self, img: Image.Image, title: str, has_image_bg: bool = False):
         """Draw title with overlay effect"""
         draw = ImageDraw.Draw(img, 'RGBA')
         
-        # Calculate text size
-        bbox = draw.textbbox((0, 0), title, font=self.title_font)
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
+        # Wrap title if too long
+        max_width = self.width - 120  # Leave margin for padding
+        lines = []
+        
+        # Check if title contains Japanese characters
+        import re
+        has_japanese = bool(re.search(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]', title))
+        
+        if has_japanese:
+            # Character-based wrapping for Japanese
+            current_line = ""
+            for char in title:
+                test_line = current_line + char
+                bbox = draw.textbbox((0, 0), test_line, font=self.title_font)
+                if bbox[2] - bbox[0] > max_width:
+                    if current_line:
+                        lines.append(current_line)
+                        current_line = char
+                    else:
+                        lines.append(char)
+                else:
+                    current_line = test_line
+            
+            if current_line:
+                lines.append(current_line)
+        else:
+            # Word-based wrapping for English
+            words = title.split(' ')
+            current_line = ""
+            
+            for word in words:
+                test_line = current_line + (' ' if current_line else '') + word
+                bbox = draw.textbbox((0, 0), test_line, font=self.title_font)
+                if bbox[2] - bbox[0] > max_width:
+                    if current_line:
+                        lines.append(current_line)
+                        current_line = word
+                    else:
+                        lines.append(word)
+                else:
+                    current_line = test_line
+            
+            if current_line:
+                lines.append(current_line)
+        
+        # Calculate total height
+        line_height = 140
+        total_height = len(lines) * line_height - 20  # Reduce spacing between lines
         
         # Center position
-        x = (self.width - text_width) // 2
         y = self.current_y
+        padding = 40
         
         # Draw glassmorphism background
-        padding = 40
         self.draw_glassmorphism_rect(
             draw,
-            x - padding,
+            60 - padding,
             y - padding,
-            x + text_width + padding,
-            y + text_height + padding
+            self.width - 60 + padding,
+            y + total_height + padding,
+            has_image_bg
         )
         
         # Draw text with shadow and outline using Pilmoji
         with Pilmoji(img) as pilmoji:
-            # Black outline
-            for dx, dy in [(-2,-2), (-2,2), (2,-2), (2,2), (-2,0), (2,0), (0,-2), (0,2)]:
-                pilmoji.text((x + dx, y + dy), title, fill=(0, 0, 0, 255), font=self.title_font)
-            # Shadow
-            pilmoji.text((x + 4, y + 4), title, fill=(0, 0, 0, 180), font=self.title_font)
-            # Main text
-            pilmoji.text((x, y), title, fill=(255, 255, 255), font=self.title_font)
+            text_y = y
+            for line in lines:
+                # Calculate line width for centering
+                bbox = draw.textbbox((0, 0), line, font=self.title_font)
+                line_width = bbox[2] - bbox[0]
+                x = (self.width - line_width) // 2
+                
+                # Black outline
+                for dx, dy in [(-2,-2), (-2,2), (2,-2), (2,2), (-2,0), (2,0), (0,-2), (0,2)]:
+                    pilmoji.text((x + dx, text_y + dy), line, fill=(0, 0, 0, 255), font=self.title_font)
+                # Shadow
+                pilmoji.text((x + 4, text_y + 4), line, fill=(0, 0, 0, 180), font=self.title_font)
+                # Main text
+                pilmoji.text((x, text_y), line, fill=(255, 255, 255), font=self.title_font)
+                text_y += line_height
         
-        self.current_y = y + text_height + padding * 2 + 40
+        self.current_y = y + total_height + padding * 2 + 40
     
-    def draw_graph_card(self, img: Image.Image, graph_img: Image.Image):
+    def draw_graph_card(self, img: Image.Image, graph_img: Image.Image, has_image_bg: bool = False):
         """Draw graph in a card with glassmorphism"""
         draw = ImageDraw.Draw(img, 'RGBA')
         
@@ -302,7 +360,8 @@ class VerticalLayoutEngine:
             card_x,
             card_y,
             card_x + card_width,
-            card_y + card_height
+            card_y + card_height,
+            has_image_bg
         )
         
         # Resize graph to fit card
@@ -326,7 +385,7 @@ class VerticalLayoutEngine:
         
         self.current_y = card_y + card_height + 40
     
-    def draw_text_cards(self, img: Image.Image, text_blocks: list):
+    def draw_text_cards(self, img: Image.Image, text_blocks: list, has_image_bg: bool = False):
         """Draw text blocks as individual cards"""
         draw = ImageDraw.Draw(img, 'RGBA')
         
@@ -364,7 +423,8 @@ class VerticalLayoutEngine:
                 card_x,
                 card_y,
                 card_x + card_width,
-                card_y + card_height
+                card_y + card_height,
+                has_image_bg
             )
             
             # Draw text with Pilmoji and outline
@@ -380,7 +440,7 @@ class VerticalLayoutEngine:
             
             self.current_y = card_y + card_height + 30
     
-    def draw_table_card(self, img: Image.Image, table: TableData):
+    def draw_table_card(self, img: Image.Image, table: TableData, has_image_bg: bool = False):
         """Draw table in a card"""
         draw = ImageDraw.Draw(img, 'RGBA')
         
@@ -399,7 +459,8 @@ class VerticalLayoutEngine:
             card_x,
             card_y,
             card_x + card_width,
-            card_y + card_height
+            card_y + card_height,
+            has_image_bg
         )
         
         # Table position within card
