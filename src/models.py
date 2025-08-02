@@ -27,3 +27,4 @@ class SlideRequest(BaseModel):
     graph: Optional[GraphData] = None  # Single graph only
     table: Optional[TableData] = None
     image: Optional[ImageData] = None
+    format: Optional[Literal["horizontal", "vertical"]] = "horizontal"

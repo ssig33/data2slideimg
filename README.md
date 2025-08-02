@@ -2,7 +2,13 @@
 
 Convert JSON data to slide images.
 
+## Formats
+
+### Horizontal (1920x1080)
 ![sample](docs/images/sample.png)
+
+### Vertical (1080x1920) - Stories format
+![vertical sample](docs/samples/vertical_sns_analysis.png)
 
 ## Usage
 

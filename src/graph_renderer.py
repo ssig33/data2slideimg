@@ -31,8 +31,11 @@ class GraphRenderer:
         else:
             self.jp_font = None
         
-    def render_graph(self, graph_data: GraphData) -> Image.Image:
+    def render_graph(self, graph_data: GraphData, vertical_format: bool = False) -> Image.Image:
         """Render graph based on type"""
+        if vertical_format:
+            # Larger font sizes for vertical format
+            plt.rcParams.update({'font.size': 16, 'axes.labelsize': 18, 'xtick.labelsize': 16, 'ytick.labelsize': 16})
         fig, ax = plt.subplots(figsize=(8, 6), dpi=100)
         
         if graph_data.type == "bar":

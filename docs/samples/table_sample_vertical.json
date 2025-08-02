@@ -1,0 +1,46 @@
+{
+  "title": "Product Comparison",
+  "textBlocks": [
+    {
+      "text": "Comparison of our product features against competitors in the market."
+    },
+    {
+      "text": "Our product excels in performance and support, while maintaining competitive pricing."
+    }
+  ],
+  "table": {
+    "headers": [
+      "Feature",
+      "Our Product",
+      "Competitor A",
+      "Competitor B"
+    ],
+    "rows": [
+      [
+        "Performance",
+        "Excellent",
+        "Good",
+        "Average"
+      ],
+      [
+        "Price",
+        "$99",
+        "$129",
+        "$89"
+      ],
+      [
+        "Support",
+        "24/7",
+        "Business hours",
+        "Email only"
+      ],
+      [
+        "Rating",
+        "4.8/5",
+        "4.2/5",
+        "3.9/5"
+      ]
+    ]
+  },
+  "format": "vertical"
+}

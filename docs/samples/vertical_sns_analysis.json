@@ -1,0 +1,22 @@
+{
+  "title": "Social Media Trends 📱",
+  "format": "vertical",
+  "textBlocks": [
+    {"text": "Gen Z adoption exceeds 90%"},
+    {"text": "Video content is now essential"},
+    {"text": "Short-form content dominates"}
+  ],
+  "graph": {
+    "type": "bar",
+    "labels": ["TikTok", "Instagram", "Twitter", "Facebook"],
+    "data": [85, 72, 45, 28]
+  },
+  "table": {
+    "headers": ["Platform", "Usage"],
+    "rows": [
+      ["TikTok", "85%"],
+      ["Instagram", "72%"],
+      ["Twitter", "45%"]
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "title": "Sales Performance",
+  "textBlocks": [
+    {
+      "text": "This bar chart shows our quarterly sales performance across different regions."
+    },
+    {
+      "text": "The data indicates strong growth in Region A and C, while Region B shows moderate performance."
+    }
+  ],
+  "graph": {
+    "type": "bar",
+    "data": [
+      120,
+      85,
+      95,
+      110
+    ],
+    "labels": [
+      "Region A",
+      "Region B",
+      "Region C",
+      "Region D"
+    ]
+  },
+  "format": "vertical"
+}

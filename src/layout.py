@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 from typing import Optional
 from src.models import TableData
+from pilmoji import Pilmoji
 import os
 
 
@@ -39,18 +40,20 @@ class LayoutEngine:
         """Draw title at the top"""
         draw = ImageDraw.Draw(img)
         
-        # Calculate text size
-        bbox = draw.textbbox((0, 0), title, font=self.title_font)
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-        
-        # Center horizontally
-        x = (self.width - text_width) // 2
-        y = self.margin
-        
-        # Draw text with shadow
-        draw.text((x + 3, y + 3), title, fill=(0, 0, 0, 128), font=self.title_font)
-        draw.text((x, y), title, fill=(255, 255, 255), font=self.title_font)
+        # Use Pilmoji for emoji support
+        with Pilmoji(img) as pilmoji:
+            # Calculate text size
+            bbox = draw.textbbox((0, 0), title, font=self.title_font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            # Center horizontally
+            x = (self.width - text_width) // 2
+            y = self.margin
+            
+            # Draw text with shadow
+            pilmoji.text((x + 3, y + 3), title, fill=(0, 0, 0, 128), font=self.title_font)
+            pilmoji.text((x, y), title, fill=(255, 255, 255), font=self.title_font)
         
         self.current_y = y + text_height + self.margin
         self.content_start_y = self.current_y
@@ -61,32 +64,33 @@ class LayoutEngine:
         current_y = self.content_start_y
         right_width = self.width - x_start - self.margin
         
-        for text_block in text_blocks:
-            # Character-based wrap for Japanese text
-            lines = []
-            current_line = ""
-            
-            for char in text_block:
-                test_line = current_line + char
-                bbox = draw.textbbox((0, 0), test_line, font=self.text_font)
-                if bbox[2] - bbox[0] > right_width:
-                    if current_line:
-                        lines.append(current_line)
-                        current_line = char
+        with Pilmoji(img) as pilmoji:
+            for text_block in text_blocks:
+                # Character-based wrap for Japanese text
+                lines = []
+                current_line = ""
+                
+                for char in text_block:
+                    test_line = current_line + char
+                    bbox = draw.textbbox((0, 0), test_line, font=self.text_font)
+                    if bbox[2] - bbox[0] > right_width:
+                        if current_line:
+                            lines.append(current_line)
+                            current_line = char
+                        else:
+                            lines.append(char)
                     else:
-                        lines.append(char)
-                else:
-                    current_line = test_line
-            
-            if current_line:
-                lines.append(current_line)
-            
-            # Draw lines
-            for line in lines:
-                draw.text((x_start, current_y), line, fill=(255, 255, 255), font=self.text_font)
-                current_y += 50
-            
-            current_y += 30
+                        current_line = test_line
+                
+                if current_line:
+                    lines.append(current_line)
+                
+                # Draw lines
+                for line in lines:
+                    pilmoji.text((x_start, current_y), line, fill=(255, 255, 255), font=self.text_font)
+                    current_y += 50
+                
+                current_y += 30
         
         return current_y
     
@@ -207,3 +211,232 @@ class LayoutEngine:
                 text_x = x + (cell_width - text_width) // 2
                 draw.text((text_x, y + 12), cell, fill=(255, 255, 255), font=self.table_font)
             y += cell_height
+
+
+class VerticalLayoutEngine:
+    """Layout engine for vertical (9:16) format with modern styling"""
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
+        self.margin = 60
+        self.card_margin = 40
+        self.current_y = 100  # Start with safe area for notch
+        
+        # Try to load Japanese font
+        self.font_paths = [
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+            "C:\\Windows\\Fonts\\msgothic.ttc"
+        ]
+        
+        self.title_font = self._load_font(120)  # Extra large for vertical
+        self.text_font = self._load_font(48)    # Larger for mobile readability
+        self.table_font = self._load_font(36)
+        
+    def _load_font(self, size: int) -> ImageFont.FreeTypeFont:
+        """Load font with fallback"""
+        for font_path in self.font_paths:
+            if os.path.exists(font_path):
+                try:
+                    return ImageFont.truetype(font_path, size)
+                except:
+                    continue
+        return ImageFont.load_default()
+    
+    def draw_glassmorphism_rect(self, draw: ImageDraw.Draw, x1: int, y1: int, x2: int, y2: int):
+        """Draw glassmorphism effect rectangle"""
+        # Semi-transparent white background - more opaque
+        draw.rectangle([x1, y1, x2, y2], fill=(255, 255, 255, 80))
+        # Border - stronger
+        draw.rectangle([x1, y1, x2, y2], outline=(255, 255, 255, 200), width=3)
+    
+    def draw_title_overlay(self, img: Image.Image, title: str):
+        """Draw title with overlay effect"""
+        draw = ImageDraw.Draw(img, 'RGBA')
+        
+        # Calculate text size
+        bbox = draw.textbbox((0, 0), title, font=self.title_font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        
+        # Center position
+        x = (self.width - text_width) // 2
+        y = self.current_y
+        
+        # Draw glassmorphism background
+        padding = 40
+        self.draw_glassmorphism_rect(
+            draw,
+            x - padding,
+            y - padding,
+            x + text_width + padding,
+            y + text_height + padding
+        )
+        
+        # Draw text with shadow and outline using Pilmoji
+        with Pilmoji(img) as pilmoji:
+            # Black outline
+            for dx, dy in [(-2,-2), (-2,2), (2,-2), (2,2), (-2,0), (2,0), (0,-2), (0,2)]:
+                pilmoji.text((x + dx, y + dy), title, fill=(0, 0, 0, 255), font=self.title_font)
+            # Shadow
+            pilmoji.text((x + 4, y + 4), title, fill=(0, 0, 0, 180), font=self.title_font)
+            # Main text
+            pilmoji.text((x, y), title, fill=(255, 255, 255), font=self.title_font)
+        
+        self.current_y = y + text_height + padding * 2 + 40
+    
+    def draw_graph_card(self, img: Image.Image, graph_img: Image.Image):
+        """Draw graph in a card with glassmorphism"""
+        draw = ImageDraw.Draw(img, 'RGBA')
+        
+        # Card dimensions
+        card_width = self.width - 2 * self.card_margin
+        card_height = 400
+        
+        # Draw card background
+        card_x = self.card_margin
+        card_y = self.current_y
+        self.draw_glassmorphism_rect(
+            draw,
+            card_x,
+            card_y,
+            card_x + card_width,
+            card_y + card_height
+        )
+        
+        # Resize graph to fit card
+        graph_width = card_width - 40
+        graph_height = card_height - 40
+        aspect_ratio = graph_img.width / graph_img.height
+        
+        if graph_width / graph_height > aspect_ratio:
+            graph_width = int(graph_height * aspect_ratio)
+        else:
+            graph_height = int(graph_width / aspect_ratio)
+        
+        graph_img = graph_img.resize((graph_width, graph_height), Image.Resampling.LANCZOS)
+        
+        # Center graph in card
+        graph_x = card_x + (card_width - graph_width) // 2
+        graph_y = card_y + (card_height - graph_height) // 2
+        
+        # Paste graph
+        img.paste(graph_img, (graph_x, graph_y), graph_img if graph_img.mode == 'RGBA' else None)
+        
+        self.current_y = card_y + card_height + 40
+    
+    def draw_text_cards(self, img: Image.Image, text_blocks: list):
+        """Draw text blocks as individual cards"""
+        draw = ImageDraw.Draw(img, 'RGBA')
+        
+        for text_block in text_blocks:
+            # Wrap text
+            lines = []
+            current_line = ""
+            card_width = self.width - 2 * self.card_margin
+            text_width = card_width - 60
+            
+            for char in text_block:
+                test_line = current_line + char
+                bbox = draw.textbbox((0, 0), test_line, font=self.text_font)
+                if bbox[2] - bbox[0] > text_width:
+                    if current_line:
+                        lines.append(current_line)
+                        current_line = char
+                    else:
+                        lines.append(char)
+                else:
+                    current_line = test_line
+            
+            if current_line:
+                lines.append(current_line)
+            
+            # Calculate card height
+            line_height = 60
+            card_height = len(lines) * line_height + 60
+            
+            # Draw card
+            card_x = self.card_margin
+            card_y = self.current_y
+            self.draw_glassmorphism_rect(
+                draw,
+                card_x,
+                card_y,
+                card_x + card_width,
+                card_y + card_height
+            )
+            
+            # Draw text with Pilmoji and outline
+            with Pilmoji(img) as pilmoji:
+                text_y = card_y + 30
+                for line in lines:
+                    # Black outline
+                    for dx, dy in [(-1,-1), (-1,1), (1,-1), (1,1)]:
+                        pilmoji.text((card_x + 30 + dx, text_y + dy), line, fill=(0, 0, 0, 255), font=self.text_font)
+                    # Main text
+                    pilmoji.text((card_x + 30, text_y), line, fill=(255, 255, 255), font=self.text_font)
+                    text_y += line_height
+            
+            self.current_y = card_y + card_height + 30
+    
+    def draw_table_card(self, img: Image.Image, table: TableData):
+        """Draw table in a card"""
+        draw = ImageDraw.Draw(img, 'RGBA')
+        
+        # Calculate table dimensions
+        num_cols = len(table.headers)
+        num_rows = len(table.rows) + 1  # +1 for header
+        card_width = self.width - 2 * self.card_margin
+        cell_height = 60
+        card_height = num_rows * cell_height + 60
+        
+        # Draw card
+        card_x = self.card_margin
+        card_y = self.current_y
+        self.draw_glassmorphism_rect(
+            draw,
+            card_x,
+            card_y,
+            card_x + card_width,
+            card_y + card_height
+        )
+        
+        # Table position within card
+        table_x = card_x + 30
+        table_y = card_y + 30
+        table_width = card_width - 60
+        cell_width = table_width // num_cols
+        
+        # Draw header
+        for i, header in enumerate(table.headers):
+            x = table_x + i * cell_width
+            # Header background
+            draw.rectangle(
+                [x, table_y, x + cell_width, table_y + cell_height],
+                fill=(255, 255, 255, 40),
+                outline=(255, 255, 255, 100)
+            )
+            # Header text
+            bbox = draw.textbbox((0, 0), header, font=self.table_font)
+            text_width = bbox[2] - bbox[0]
+            text_x = x + (cell_width - text_width) // 2
+            draw.text((text_x, table_y + 15), header, fill=(255, 255, 255), font=self.table_font)
+        
+        table_y += cell_height
+        
+        # Draw rows
+        for row in table.rows:
+            for i, cell in enumerate(row):
+                x = table_x + i * cell_width
+                # Cell border
+                draw.rectangle(
+                    [x, table_y, x + cell_width, table_y + cell_height],
+                    outline=(255, 255, 255, 60)
+                )
+                # Cell text
+                bbox = draw.textbbox((0, 0), cell, font=self.table_font)
+                text_width = bbox[2] - bbox[0]
+                text_x = x + (cell_width - text_width) // 2
+                draw.text((text_x, table_y + 15), cell, fill=(255, 255, 255), font=self.table_font)
+            table_y += cell_height

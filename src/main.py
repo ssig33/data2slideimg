@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import Response
 from src.models import SlideRequest
-from src.image_generator import generate_slide_image
+from src.image_generator import generate_slide_image, generate_vertical_slide_image
 import json
 
 app = FastAPI()
@@ -9,7 +9,10 @@ app = FastAPI()
 
 @app.post("/generate")
 async def generate_slide(request: SlideRequest):
-    image_bytes = generate_slide_image(request)
+    if request.format == "vertical":
+        image_bytes = generate_vertical_slide_image(request)
+    else:
+        image_bytes = generate_slide_image(request)
     return Response(content=image_bytes, media_type="image/png")
 
 

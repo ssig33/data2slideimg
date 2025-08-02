@@ -1,0 +1,27 @@
+{
+  "title": "Market Share Analysis",
+  "textBlocks": [
+    {
+      "text": "Current market share distribution among major competitors in our industry."
+    },
+    {
+      "text": "Our company holds the largest market share at 35%, followed by Competitor A at 28%."
+    }
+  ],
+  "graph": {
+    "type": "pie",
+    "data": [
+      35,
+      28,
+      20,
+      17
+    ],
+    "labels": [
+      "Our Company",
+      "Competitor A",
+      "Competitor B",
+      "Others"
+    ]
+  },
+  "format": "vertical"
+}

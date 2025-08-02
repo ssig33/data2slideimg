@@ -6,27 +6,39 @@ This directory contains sample JSON files and their generated slide images demon
 
 ### Bar Chart
 - **Input**: [bar_chart.json](bar_chart.json)
-- **Output**: ![Bar Chart](bar_chart.png)
+- **Horizontal**: ![Bar Chart](bar_chart.png)
+- **Vertical**: ![Bar Chart Vertical](bar_chart_vertical.png)
 
 ### Line Chart
 - **Input**: [line_chart.json](line_chart.json)
-- **Output**: ![Line Chart](line_chart.png)
+- **Horizontal**: ![Line Chart](line_chart.png)
+- **Vertical**: ![Line Chart Vertical](line_chart_vertical.png)
 
 ### Pie Chart
 - **Input**: [pie_chart.json](pie_chart.json)
-- **Output**: ![Pie Chart](pie_chart.png)
+- **Horizontal**: ![Pie Chart](pie_chart.png)
+- **Vertical**: ![Pie Chart Vertical](pie_chart_vertical.png)
 
 ## Table Sample
 - **Input**: [table_sample.json](table_sample.json)
-- **Output**: ![Table Sample](table_sample.png)
+- **Horizontal**: ![Table Sample](table_sample.png)
+- **Vertical**: ![Table Sample Vertical](table_sample_vertical.png)
 
 ## Japanese Sample
 - **Input**: [japanese_sample.json](japanese_sample.json)
-- **Output**: ![Japanese Sample](japanese_sample.png)
+- **Horizontal**: ![Japanese Sample](japanese_sample.png)
+- **Vertical**: ![Japanese Sample Vertical](japanese_sample_vertical.png)
 
 ## Image Sample
 - **Input**: [image_sample.json](image_sample.json)
-- **Output**: ![Image Sample](image_sample.png)
+- **Horizontal**: ![Image Sample](image_sample.png)
+- **Vertical**: ![Image Sample Vertical](image_sample_vertical.png)
+
+## Vertical Format (Stories)
+- **Input**: [vertical_sns_analysis.json](vertical_sns_analysis.json)
+- **Output**: ![Vertical SNS Analysis](vertical_sns_analysis.png)
+- **Format**: 1080x1920 (9:16 aspect ratio)
+- **Features**: Glassmorphism cards, vibrant gradients, mobile-optimized text sizes
 
 ## Usage
 

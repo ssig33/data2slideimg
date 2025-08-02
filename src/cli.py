@@ -2,7 +2,7 @@ import click
 import json
 from pathlib import Path
 from src.models import SlideRequest
-from src.image_generator import generate_slide_image
+from src.image_generator import generate_slide_image, generate_vertical_slide_image
 
 
 @click.command()
@@ -18,7 +18,10 @@ def generate(input, output):
         request = SlideRequest(**data)
         
         # Generate image
-        image_bytes = generate_slide_image(request)
+        if request.format == "vertical":
+            image_bytes = generate_vertical_slide_image(request)
+        else:
+            image_bytes = generate_slide_image(request)
         
         # Save to file
         output_path = Path(output)

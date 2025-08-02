@@ -1,9 +1,9 @@
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 from io import BytesIO
 import random
 import requests
 from src.models import SlideRequest
-from src.layout import LayoutEngine
+from src.layout import LayoutEngine, VerticalLayoutEngine
 from src.graph_renderer import GraphRenderer
 
 
@@ -14,14 +14,29 @@ def download_image(url: str) -> Image.Image:
     return img
 
 
-def generate_gradient_background(width: int, height: int) -> Image.Image:
+def generate_gradient_background(width: int, height: int, vibrant: bool = False) -> Image.Image:
     """Generate random gradient background"""
     img = Image.new('RGB', (width, height))
     draw = ImageDraw.Draw(img)
     
-    # Random colors - darker for better contrast with white text
-    color1 = (random.randint(40, 120), random.randint(40, 120), random.randint(40, 120))
-    color2 = (random.randint(20, 80), random.randint(20, 80), random.randint(20, 80))
+    if vibrant:
+        # Vibrant colors for vertical format - darker for better contrast
+        palettes = [
+            # Darker neon gradients
+            [(180, 0, 100), (0, 100, 180)],
+            [(100, 0, 180), (0, 180, 100)],
+            [(180, 70, 0), (180, 0, 150)],
+            # Darker pastel gradients
+            [(180, 140, 160), (140, 160, 180)],
+            [(180, 160, 140), (140, 180, 160)],
+            [(160, 140, 180), (180, 160, 140)],
+        ]
+        colors = random.choice(palettes)
+        color1, color2 = colors
+    else:
+        # Random colors - darker for better contrast with white text
+        color1 = (random.randint(40, 120), random.randint(40, 120), random.randint(40, 120))
+        color2 = (random.randint(20, 80), random.randint(20, 80), random.randint(20, 80))
     
     # Create gradient
     for y in range(height):
@@ -74,6 +89,54 @@ def generate_slide_image(request: SlideRequest) -> bytes:
     # Draw table below text in right column
     if request.table:
         layout.draw_table_right(img, request.table, right_column_start, text_end_y)
+    
+    # Convert to bytes
+    output = BytesIO()
+    img.save(output, format='PNG')
+    return output.getvalue()
+
+
+def generate_vertical_slide_image(request: SlideRequest) -> bytes:
+    """Generate vertical slide image (stories format) from request data"""
+    width, height = 1080, 1920  # 9:16 aspect ratio
+    
+    # Create base image with vibrant gradient
+    img = generate_gradient_background(width, height, vibrant=True)
+    
+    # Create blurred background if image is provided
+    if request.image:
+        try:
+            bg_img = download_image(request.image.url)
+            # Scale to cover and crop
+            bg_img = bg_img.resize((width, height), Image.Resampling.LANCZOS)
+            # Apply blur
+            bg_img = bg_img.filter(ImageFilter.GaussianBlur(radius=20))
+            # Blend with gradient (50% opacity)
+            img = Image.blend(img, bg_img, 0.5)
+        except:
+            pass  # Use gradient only if image fails
+    
+    # Initialize vertical layout engine
+    layout = VerticalLayoutEngine(width, height)
+    
+    # Draw title with glassmorphism effect
+    if request.title:
+        layout.draw_title_overlay(img, request.title)
+    
+    # Draw graph/data card if exists
+    if request.graph:
+        graph_renderer = GraphRenderer()
+        graph_img = graph_renderer.render_graph(request.graph, vertical_format=True)
+        layout.draw_graph_card(img, graph_img)
+    
+    # Draw text blocks as cards
+    if request.textBlocks:
+        text_blocks_text = [block.text for block in request.textBlocks]
+        layout.draw_text_cards(img, text_blocks_text)
+    
+    # Draw table as card
+    if request.table:
+        layout.draw_table_card(img, request.table)
     
     # Convert to bytes
     output = BytesIO()
