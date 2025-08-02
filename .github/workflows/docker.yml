@@ -26,7 +26,7 @@ jobs:
 
       - name: export pyproject to requirements.txt
         run: |
-          uv export --dev --format requirements.txt
+          uv export --dev --format requirements.txt > requirements.txt
 
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
