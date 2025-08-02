@@ -185,7 +185,7 @@ class LayoutEngine:
             x = x_start + i * cell_width
             # Draw cell background
             draw.rectangle([x, y, x + cell_width, y + cell_height], 
-                         fill=(255, 255, 255, 30), outline=(255, 255, 255, 128))
+                         fill=(50, 50, 50, 200), outline=(255, 255, 255, 128))
             # Draw text
             bbox = draw.textbbox((0, 0), header, font=self.table_font)
             text_width = bbox[2] - bbox[0]
