@@ -1,0 +1,20 @@
+{
+  "title": "Tokyo Station Area",
+  "format": "vertical",
+  "map": {
+    "lat": 35.6812,
+    "lon": 139.7671,
+    "zoom": 14,
+    "language": "en",
+    "width": 1080,
+    "height": 1920
+  },
+  "textBlocks": [
+    {
+      "text": "Tokyo Station is the central station of Japan's capital."
+    },
+    {
+      "text": "Surrounded by the Imperial Palace and Marunouchi business district."
+    }
+  ]
+}

@@ -34,6 +34,12 @@ This directory contains sample JSON files and their generated slide images demon
 - **Horizontal**: ![Image Sample](image_sample.png)
 - **Vertical**: ![Image Sample Vertical](image_sample_vertical.png)
 
+## Map Sample
+- **Input**: [map_sample.json](map_sample.json) / [map_sample_vertical.json](map_sample_vertical.json)
+- **Horizontal**: ![Map Sample](map_sample.png)
+- **Vertical**: ![Map Sample Vertical](map_sample_vertical.png)
+- **Features**: OpenStreetMap tiles with red marker at center point
+
 ## Vertical Format (Stories)
 - **Input**: [vertical_sns_analysis.json](vertical_sns_analysis.json)
 - **Output**: ![Vertical SNS Analysis](vertical_sns_analysis.png)

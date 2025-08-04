@@ -1,0 +1,14 @@
+{
+  "title": "Map Test",
+  "map": {
+    "lat": 35.6812,
+    "lon": 139.7671,
+    "zoom": 15,
+    "language": "ja"
+  },
+  "textBlocks": [
+    {
+      "text": "This is a test for the map feature."
+    }
+  ]
+}

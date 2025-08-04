@@ -2,7 +2,8 @@ from PIL import Image, ImageDraw, ImageFilter
 from io import BytesIO
 import random
 import requests
-from src.models import SlideRequest
+import os
+from src.models import SlideRequest, MapData
 from src.layout import LayoutEngine, VerticalLayoutEngine
 from src.graph_renderer import GraphRenderer
 
@@ -12,6 +13,78 @@ def download_image(url: str) -> Image.Image:
     response = requests.get(url)
     img = Image.open(BytesIO(response.content))
     return img
+
+
+def generate_map_with_marker(map_data: MapData) -> Image.Image:
+    """Generate map image with red marker at center"""
+    # Use Stamen Terrain tiles (free, no API key required)
+    # Alternative: a.tile.openstreetmap.org
+    
+    # Convert lat/lon to tile coordinates
+    import math
+    
+    n = 2.0 ** map_data.zoom
+    xtile = int((map_data.lon + 180.0) / 360.0 * n)
+    ytile = int((1.0 - math.asinh(math.tan(math.radians(map_data.lat))) / math.pi) / 2.0 * n)
+    
+    # Calculate how many tiles we need
+    tiles_x = (map_data.width + 255) // 256
+    tiles_y = (map_data.height + 255) // 256
+    
+    # Create base image
+    map_img = Image.new('RGB', (map_data.width, map_data.height))
+    
+    # Download and paste tiles
+    for dx in range(tiles_x):
+        for dy in range(tiles_y):
+            try:
+                # Using OSM tile server
+                tile_url = f"https://a.tile.openstreetmap.org/{map_data.zoom}/{xtile + dx - tiles_x//2}/{ytile + dy - tiles_y//2}.png"
+                response = requests.get(tile_url, headers={'User-Agent': 'data2slideimg/1.0'})
+                tile = Image.open(BytesIO(response.content))
+                
+                # Paste tile
+                x = dx * 256
+                y = dy * 256
+                map_img.paste(tile, (x, y))
+            except:
+                pass  # Skip failed tiles
+    
+    # Crop to exact size
+    map_img = map_img.crop((0, 0, map_data.width, map_data.height))
+    
+    # Draw red marker at center
+    draw = ImageDraw.Draw(map_img)
+    center_x = map_data.width // 2
+    center_y = map_data.height // 2
+    
+    # Draw pin shape
+    # Pin body (circle)
+    pin_radius = 15
+    draw.ellipse(
+        [center_x - pin_radius, center_y - pin_radius * 2,
+         center_x + pin_radius, center_y],
+        fill='red',
+        outline='darkred',
+        width=2
+    )
+    
+    # Pin tip (triangle)
+    draw.polygon(
+        [(center_x, center_y),
+         (center_x - pin_radius//2, center_y - pin_radius),
+         (center_x + pin_radius//2, center_y - pin_radius)],
+        fill='red'
+    )
+    
+    # Inner circle for highlight
+    draw.ellipse(
+        [center_x - pin_radius//2, center_y - pin_radius * 2 + 5,
+         center_x + pin_radius//2, center_y - pin_radius],
+        fill='white'
+    )
+    
+    return map_img
 
 
 def generate_gradient_background(width: int, height: int, vibrant: bool = False) -> Image.Image:
@@ -66,10 +139,14 @@ def generate_slide_image(request: SlideRequest) -> bytes:
     # New layout: image/graph left, text and table right
     right_column_start = None
     
-    # Priority: image > graph
+    # Priority: image > map > graph
     if request.image:
         # Download and draw image in left column
         source_img = download_image(request.image.url)
+        right_column_start = layout.draw_image_left(img, source_img)
+    elif request.map:
+        # Generate and draw map in left column
+        source_img = generate_map_with_marker(request.map)
         right_column_start = layout.draw_image_left(img, source_img)
     elif request.graph:
         # Draw graph in left column if no image
@@ -103,7 +180,7 @@ def generate_vertical_slide_image(request: SlideRequest) -> bytes:
     # Create base image with vibrant gradient
     img = generate_gradient_background(width, height, vibrant=True)
     
-    # Use image as clean background if provided
+    # Use image or map as clean background if provided
     has_image_background = False
     if request.image:
         try:
@@ -132,6 +209,34 @@ def generate_vertical_slide_image(request: SlideRequest) -> bytes:
             has_image_background = True
         except:
             pass  # Use gradient only if image fails
+    elif request.map:
+        try:
+            # Generate map with marker as background
+            bg_img = generate_map_with_marker(request.map)
+            # Maintain aspect ratio - scale to fit width and center vertically
+            original_width, original_height = bg_img.size
+            aspect_ratio = original_width / original_height
+            
+            # Scale to fit width
+            new_width = width
+            new_height = int(width / aspect_ratio)
+            
+            # If scaled image is too short, scale to fit height instead
+            if new_height < height:
+                new_height = height
+                new_width = int(height * aspect_ratio)
+            
+            bg_img = bg_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            
+            # Create base image and paste centered
+            img = generate_gradient_background(width, height, vibrant=True)
+            paste_x = (width - new_width) // 2
+            paste_y = (height - new_height) // 2
+            img.paste(bg_img, (paste_x, paste_y))
+            
+            has_image_background = True
+        except:
+            pass  # Use gradient only if map fails
     
     # Initialize vertical layout engine
     layout = VerticalLayoutEngine(width, height)
