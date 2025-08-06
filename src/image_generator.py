@@ -93,16 +93,16 @@ def generate_gradient_background(width: int, height: int, vibrant: bool = False)
     draw = ImageDraw.Draw(img)
     
     if vibrant:
-        # Modern SNS-style gradients for vertical format
+        # Modern SNS-style gradients for vertical format - darker colors only
         palettes = [
             # S Tier - Professional SNS gradients
             [(255, 45, 85), (255, 100, 45)],      # Instagram-style pink to orange  
             [(30, 150, 255), (0, 200, 200)],      # Twitter-style blue to cyan
             [(150, 50, 255), (50, 200, 255)],     # TikTok-style purple to light blue
-            # A Tier - Business-friendly elegant gradients
-            [(255, 150, 0), (255, 200, 50)],      # Warm orange to yellow
-            [(50, 200, 150), (100, 255, 200)],    # Fresh green to mint
-            [(240, 100, 100), (100, 240, 240)],   # Gentle coral to aqua
+            # Enhanced A Tier - Darker business gradients
+            [(220, 120, 0), (180, 80, 20)],       # Rich orange to dark orange
+            [(40, 160, 120), (20, 120, 80)],      # Deep green to forest green
+            [(200, 60, 60), (120, 40, 120)],      # Rich coral to deep purple
         ]
         colors = random.choice(palettes)
         color1, color2 = colors

@@ -230,8 +230,8 @@ class VerticalLayoutEngine:
             "C:\\Windows\\Fonts\\msgothic.ttc"
         ]
         
-        self.title_font = self._load_font(120)  # Extra large for vertical
-        self.text_font = self._load_font(48)    # Larger for mobile readability
+        self.title_font = self._load_font(140)  # Enhanced size for better readability
+        self.text_font = self._load_font(50)    # Increased size for mobile readability
         self.table_font = self._load_font(36)
         
     def _load_font(self, size: int) -> ImageFont.FreeTypeFont:
@@ -245,17 +245,17 @@ class VerticalLayoutEngine:
         return ImageFont.load_default()
     
     def draw_glassmorphism_rect(self, draw: ImageDraw.Draw, x1: int, y1: int, x2: int, y2: int, has_image_bg: bool = False):
-        """Draw glassmorphism effect rectangle"""
+        """Draw enhanced glassmorphism effect rectangle with better readability"""
         if has_image_bg:
-            # More opaque background for image backgrounds
-            draw.rectangle([x1, y1, x2, y2], fill=(0, 0, 0, 120))
+            # Much more opaque background for image backgrounds - enhanced readability
+            draw.rectangle([x1, y1, x2, y2], fill=(0, 0, 0, 240))
             # Stronger border
             draw.rectangle([x1, y1, x2, y2], outline=(255, 255, 255, 255), width=3)
         else:
-            # Semi-transparent white background - more opaque
-            draw.rectangle([x1, y1, x2, y2], fill=(255, 255, 255, 80))
-            # Border - stronger
-            draw.rectangle([x1, y1, x2, y2], outline=(255, 255, 255, 200), width=3)
+            # Dark background for gradient backgrounds - maximum contrast with white text
+            draw.rectangle([x1, y1, x2, y2], fill=(0, 0, 0, 200))
+            # Stronger border
+            draw.rectangle([x1, y1, x2, y2], outline=(255, 255, 255, 255), width=3)
     
     def draw_title_overlay(self, img: Image.Image, title: str, has_image_bg: bool = False):
         """Draw title with overlay effect"""
@@ -306,9 +306,9 @@ class VerticalLayoutEngine:
             if current_line:
                 lines.append(current_line)
         
-        # Calculate total height
-        line_height = 140
-        total_height = len(lines) * line_height - 20  # Reduce spacing between lines
+        # Calculate total height with improved spacing
+        line_height = 160
+        total_height = len(lines) * line_height - 20  # Enhanced line spacing for readability
         
         # Center position
         y = self.current_y
@@ -352,17 +352,15 @@ class VerticalLayoutEngine:
         card_width = self.width - 2 * self.card_margin
         card_height = 400
         
-        # Draw card background
+        # Draw chart-specific background (light for readability)
         card_x = self.card_margin
         card_y = self.current_y
-        self.draw_glassmorphism_rect(
-            draw,
-            card_x,
-            card_y,
-            card_x + card_width,
-            card_y + card_height,
-            has_image_bg
-        )
+        # Light background for charts regardless of image background
+        draw.rectangle([card_x, card_y, card_x + card_width, card_y + card_height], 
+                      fill=(255, 255, 255, 240))
+        # Border
+        draw.rectangle([card_x, card_y, card_x + card_width, card_y + card_height], 
+                      outline=(255, 255, 255, 255), width=3)
         
         # Resize graph to fit card
         graph_width = card_width - 40
