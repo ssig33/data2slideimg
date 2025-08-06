@@ -185,23 +185,24 @@ def generate_vertical_slide_image(request: SlideRequest) -> bytes:
     if request.image:
         try:
             bg_img = download_image(request.image.url)
-            # Maintain aspect ratio - scale to fit width and center vertically
+            # Scale to fit entirely within canvas (letterbox/pillarbox)
             original_width, original_height = bg_img.size
             aspect_ratio = original_width / original_height
+            canvas_ratio = width / height
             
-            # Scale to fit width
-            new_width = width
-            new_height = int(width / aspect_ratio)
-            
-            # If scaled image is too short, scale to fit height instead
-            if new_height < height:
+            if aspect_ratio > canvas_ratio:
+                # Image is wider - fit to width, add black bars top/bottom
+                new_width = width
+                new_height = int(width / aspect_ratio)
+            else:
+                # Image is taller - fit to height, add black bars left/right
                 new_height = height
                 new_width = int(height * aspect_ratio)
             
             bg_img = bg_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
             
-            # Create base image and paste centered
-            img = generate_gradient_background(width, height, vibrant=True)
+            # Create black background and paste centered
+            img = Image.new('RGB', (width, height), (0, 0, 0))
             paste_x = (width - new_width) // 2
             paste_y = (height - new_height) // 2
             img.paste(bg_img, (paste_x, paste_y))
@@ -213,23 +214,24 @@ def generate_vertical_slide_image(request: SlideRequest) -> bytes:
         try:
             # Generate map with marker as background
             bg_img = generate_map_with_marker(request.map)
-            # Maintain aspect ratio - scale to fit width and center vertically
+            # Scale to fit entirely within canvas (letterbox/pillarbox)
             original_width, original_height = bg_img.size
             aspect_ratio = original_width / original_height
+            canvas_ratio = width / height
             
-            # Scale to fit width
-            new_width = width
-            new_height = int(width / aspect_ratio)
-            
-            # If scaled image is too short, scale to fit height instead
-            if new_height < height:
+            if aspect_ratio > canvas_ratio:
+                # Map is wider - fit to width, add black bars top/bottom
+                new_width = width
+                new_height = int(width / aspect_ratio)
+            else:
+                # Map is taller - fit to height, add black bars left/right
                 new_height = height
                 new_width = int(height * aspect_ratio)
             
             bg_img = bg_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
             
-            # Create base image and paste centered
-            img = generate_gradient_background(width, height, vibrant=True)
+            # Create black background and paste centered
+            img = Image.new('RGB', (width, height), (0, 0, 0))
             paste_x = (width - new_width) // 2
             paste_y = (height - new_height) // 2
             img.paste(bg_img, (paste_x, paste_y))
