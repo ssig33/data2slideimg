@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.2.1",
-    "emoji<2.0",
+    "emoji<2.15",
     "fastapi>=0.116.1",
     "matplotlib>=3.10.5",
     "pillow>=11.3.0",
